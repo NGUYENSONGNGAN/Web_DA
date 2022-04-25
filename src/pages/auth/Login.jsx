@@ -1,18 +1,31 @@
 import React from "react";
-
+import { toast } from "react-toastify";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useDispatch } from "react-redux";
 // antd
 import { Form, Input, Button, Checkbox } from "antd";
+import { auth } from "../../firebase";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
-  const onFinish = (values) => {
-    if (values.username == "123" && values.password == "123") {
-      // lưu vào localStorage khi đã đăng nhập đúng
-      localStorage.setItem("username", values.username);
-      localStorage.setItem("password", values.password);
-
-      alert("ok");
-    } else {
-      alert("Sai tai khoan mat khau");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const onFinish = async (values) => {
+    const { email, password } = values;
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const { user } = result;
+      const idTokenResult = await user.getIdTokenResult();
+      dispatch({
+        type: "LOGGED_IN_USER",
+        payload: {
+          email: user.email,
+          token: idTokenResult.token,
+        },
+      });
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
@@ -32,9 +45,10 @@ const Login = () => {
         autoComplete="off"
       >
         <Form.Item
-          label="Username"
-          name="username"
-          rules={[{ required: true, message: "Please input your username!" }]}
+          label="Email"
+          name="email"
+          rules={[{ required: true, message: "Please input your email!" }]}
+          value="nguyensongnganuuuu@gmail.com"
         >
           <Input />
         </Form.Item>
@@ -43,14 +57,13 @@ const Login = () => {
           label="Password"
           name="password"
           rules={[{ required: true, message: "Please input your password!" }]}
+          value="123456"
         >
           <Input.Password />
         </Form.Item>
-
-        <Form.Item name="remember" valuePropName="checked" wrapperCol={{ offset: 8, span: 16 }}>
-          <Checkbox>Remember me</Checkbox>
-        </Form.Item>
-
+        <Link to="/forgot/password" className="mt-3 float-end text-danger">
+          Forgot password
+        </Link>
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
           <Button type="primary" htmlType="submit">
             Submit
